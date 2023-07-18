@@ -7,8 +7,11 @@ import {
   getBrain,
   getBrainDocuments,
   getBrains,
+  getBrainUsers,
   getDefaultBrain,
   Subscription,
+  SubscriptionUpdatableProperties,
+  updateBrainAccess,
 } from "./brain";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -25,7 +28,14 @@ export const useBrainApi = () => {
     getBrain: async (id: string) => getBrain(id, axiosInstance),
     addBrainSubscriptions: async (
       brainId: string,
-      subscriptions: Subscription
+      subscriptions: Subscription[]
     ) => addBrainSubscriptions(brainId, subscriptions, axiosInstance),
+    getBrainUsers: async (brainId: string) =>
+      getBrainUsers(brainId, axiosInstance),
+    updateBrainAccess: async (
+      brainId: string,
+      userEmail: string,
+      subscription: SubscriptionUpdatableProperties
+    ) => updateBrainAccess(brainId, userEmail, subscription, axiosInstance),
   };
 };

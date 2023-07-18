@@ -8,7 +8,8 @@ import { MdContentPaste, MdShare } from "react-icons/md";
 import Button from "@/lib/components/ui/Button";
 import { Modal } from "@/lib/components/ui/Modal";
 
-import { InvitedUserRow } from "./components/InvitedUserRow";
+import { BrainUsers } from "./components/BrainUsers";
+import { UserToInvite } from "./components/UserToInvite";
 import { useShareBrain } from "./hooks/useShareBrain";
 
 type ShareBrainModalProps = {
@@ -27,6 +28,9 @@ export const ShareBrain = ({ brainId }: ShareBrainModalProps): JSX.Element => {
     sendingInvitation,
     setIsShareModalOpen,
     isShareModalOpen,
+    brainUsers,
+    fetchBrainUsers,
+    isFetchingBrainUsers,
   } = useShareBrain(brainId);
 
   const canAddNewRow =
@@ -75,7 +79,7 @@ export const ShareBrain = ({ brainId }: ShareBrainModalProps): JSX.Element => {
           <div className="bg-gray-100 h-0.5 mb-5 border-gray-200 dark:border-gray-700" />
 
           {roleAssignations.map((roleAssignation, index) => (
-            <InvitedUserRow
+            <UserToInvite
               key={roleAssignation.id}
               onChange={updateRoleAssignation(index)}
               removeCurrentInvitation={removeRoleAssignation(index)}
@@ -86,7 +90,6 @@ export const ShareBrain = ({ brainId }: ShareBrainModalProps): JSX.Element => {
             className="my-5"
             onClick={addNewRoleAssignationRole}
             disabled={sendingInvitation || !canAddNewRow}
-            isLoading={sendingInvitation}
             data-testid="add-new-row-role-button"
           >
             <ImUserPlus />
@@ -94,11 +97,23 @@ export const ShareBrain = ({ brainId }: ShareBrainModalProps): JSX.Element => {
         </div>
 
         <div className="mb-3 flex flex-row justify-end">
-          <Button disabled={roleAssignations.length === 0} type="submit">
+          <Button
+            isLoading={sendingInvitation}
+            disabled={roleAssignations.length === 0}
+            type="submit"
+          >
             Share
           </Button>
         </div>
       </form>
+      <div className="bg-gray-100 h-0.5 mb-5 border-gray-200 dark:border-gray-700" />
+      <p className="text-lg font-bold">Users with access</p>
+      <BrainUsers
+        isFetchingBrainUsers={isFetchingBrainUsers}
+        brainId={brainId}
+        fetchBrainUsers={fetchBrainUsers}
+        users={brainUsers}
+      />
     </Modal>
   );
 };

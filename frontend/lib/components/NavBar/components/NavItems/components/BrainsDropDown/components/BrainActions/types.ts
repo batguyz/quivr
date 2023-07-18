@@ -1,9 +1,9 @@
-export const roles = ["viewer", "editor"];
+export const roles = ["Viewer", "Editor", "Owner"] as const;
 
 export type BrainRoleType = (typeof roles)[number];
 
 export type BrainRoleAssignation = {
   email: string;
-  role: BrainRoleType;
+  rights: BrainRoleType;
   id: string;
 };
