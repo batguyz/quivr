@@ -1,9 +1,16 @@
 FROM node:18-alpine
 
 # Install Python and essential build tools
-RUN apk add --update --no-cache python3 make g++ && ln -sf python3 /usr/bin/python
+RUN apk add --update --no-cache  python3 make g++ && ln -sf python3 /usr/bin/python
 RUN python3 -m ensurepip
-RUN pip3 install --no-cache --upgrade pip setuptools
+RUN pip3 install --no-cache --upgrade pip setuptools pypandoc
+
+# Install Pandoc
+# RUN apk add pandoc
+# RUN apt install pandoc
+RUN pip3 install pypandoc
+RUN python3 -c "from pypandoc import pandoc_download; pandoc_download.download_pandoc()"
+
 
 # Create the directory on the node image 
 # where our Next.js app will live
