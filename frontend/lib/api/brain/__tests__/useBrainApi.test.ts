@@ -2,7 +2,12 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { Subscription, SubscriptionUpdatableProperties } from "../brain";
+import { Subscription } from "../brain";
+import {
+  CreateBrainInput,
+  SubscriptionUpdatableProperties,
+  UpdateBrainInput,
+} from "../types";
 import { useBrainApi } from "../useBrainApi";
 
 const axiosGetMock = vi.fn(() => ({
@@ -56,11 +61,21 @@ describe("useBrainApi", () => {
         current: { createBrain },
       },
     } = renderHook(() => useBrainApi());
-    const name = "Test Brain";
-    await createBrain(name);
+
+    const brain: CreateBrainInput = {
+      name: "Test Brain",
+      description: "This is a description",
+      status: "public",
+      model: "gpt-3.5-turbo-0613",
+      temperature: 0.0,
+      max_tokens: 256,
+      openai_api_key: "123",
+    };
+
+    await createBrain(brain);
 
     expect(axiosPostMock).toHaveBeenCalledTimes(1);
-    expect(axiosPostMock).toHaveBeenCalledWith("/brains/", { name });
+    expect(axiosPostMock).toHaveBeenCalledWith("/brains/", brain);
   });
 
   it("should call deleteBrain with the correct parameters", async () => {
@@ -89,6 +104,12 @@ describe("useBrainApi", () => {
   });
 
   it("should call getBrains with the correct parameters", async () => {
+    axiosGetMock.mockImplementationOnce(() => ({
+      data: {
+        //@ts-ignore we don't really need returned value here
+        brains: [],
+      },
+    }));
     const {
       result: {
         current: { getBrains },
@@ -123,19 +144,26 @@ describe("useBrainApi", () => {
     const subscriptions: Subscription[] = [
       {
         email: "user@quivr.app",
-        rights: "Viewer",
+        role: "Viewer",
       },
     ];
     await addBrainSubscriptions(id, subscriptions);
 
     expect(axiosPostMock).toHaveBeenCalledTimes(1);
-    expect(axiosPostMock).toHaveBeenCalledWith(
-      `/brains/${id}/subscription`,
-      subscriptions
-    );
+    expect(axiosPostMock).toHaveBeenCalledWith(`/brains/${id}/subscription`, [
+      {
+        email: "user@quivr.app",
+        rights: "Viewer",
+      },
+    ]);
   });
 
   it("should call getBrainUsers with the correct parameters", async () => {
+    axiosGetMock.mockImplementationOnce(() => ({
+      //@ts-ignore we don't really need returned value here
+      data: [],
+    }));
+
     const {
       result: {
         current: { getBrainUsers },
@@ -156,13 +184,46 @@ describe("useBrainApi", () => {
     const brainId = "123";
     const email = "456";
     const subscription: SubscriptionUpdatableProperties = {
-      rights: "Viewer",
+      role: "Viewer",
     };
     await updateBrainAccess(brainId, email, subscription);
     expect(axiosPutMock).toHaveBeenCalledTimes(1);
     expect(axiosPutMock).toHaveBeenCalledWith(
       `/brains/${brainId}/subscription`,
-      { ...subscription, email }
+      { rights: "Viewer", email }
     );
+  });
+
+  it("should call setAsDefaultBrain with correct brainId", async () => {
+    const {
+      result: {
+        current: { setAsDefaultBrain },
+      },
+    } = renderHook(() => useBrainApi());
+    const brainId = "123";
+    await setAsDefaultBrain(brainId);
+    expect(axiosPostMock).toHaveBeenCalledTimes(1);
+    expect(axiosPostMock).toHaveBeenCalledWith(`/brains/${brainId}/default`);
+  });
+
+  it("should call updateBrain with correct brainId and brain", async () => {
+    const {
+      result: {
+        current: { updateBrain },
+      },
+    } = renderHook(() => useBrainApi());
+    const brainId = "123";
+    const brain: UpdateBrainInput = {
+      name: "Test Brain",
+      description: "This is a description",
+      status: "public",
+      model: "gpt-3.5-turbo-0613",
+      temperature: 0.0,
+      max_tokens: 256,
+      openai_api_key: "123",
+    };
+    await updateBrain(brainId, brain);
+    expect(axiosPutMock).toHaveBeenCalledTimes(1);
+    expect(axiosPutMock).toHaveBeenCalledWith(`/brains/${brainId}/`, brain);
   });
 });

@@ -18,6 +18,7 @@ from repository.user.get_user_email_by_user_id import get_user_email_by_user_id
 from repository.user.get_user_id_by_user_email import get_user_id_by_user_email
 
 from routes.authorizations.brain_authorization import (
+    RoleEnum,
     has_brain_authorization,
     validate_brain_authorization,
 )
@@ -33,7 +34,7 @@ subscription_service = SubscriptionInvitationService()
         Depends(
             AuthBearer(),
         ),
-        Depends(has_brain_authorization),
+        Depends(has_brain_authorization([RoleEnum.Owner, RoleEnum.Editor])),
         Depends(get_origin_header),
     ],
     tags=["BrainSubscription"],
@@ -49,11 +50,23 @@ def invite_users_to_brain(
     or updates a brain subscription invitation for each user and sends an
     invitation email to each user.
     """
-
     for user in users:
         subscription = BrainSubscription(
             brain_id=brain_id, email=user["email"], rights=user["rights"]
         )
+        # check if user is an editor but trying to give high level permissions
+        if subscription.rights == "Owner":
+            try:
+                validate_brain_authorization(
+                    brain_id,
+                    current_user.id,
+                    RoleEnum.Owner,
+                )
+            except HTTPException:
+                raise HTTPException(
+                    status_code=403,
+                    detail="You don't have the rights to give owner permissions",
+                )
 
         try:
             subscription_service.create_or_update_subscription_invitation(subscription)
@@ -68,7 +81,10 @@ def invite_users_to_brain(
 
 @subscription_router.get(
     "/brains/{brain_id}/users",
-    dependencies=[Depends(AuthBearer()), Depends(has_brain_authorization())],
+    dependencies=[
+        Depends(AuthBearer()),
+        Depends(has_brain_authorization([RoleEnum.Owner, RoleEnum.Editor])),
+    ],
 )
 def get_brain_users(
     brain_id: UUID,
@@ -157,13 +173,13 @@ def get_user_invitation(brain_id: UUID, current_user: User = Depends(get_current
     brain = Brain(id=brain_id)
     brain_details = brain.get_brain_details()
 
-    if len(brain_details) == 0:
+    if brain_details is None:
         raise HTTPException(
             status_code=404,
             detail="Brain not found while trying to get invitation",
         )
 
-    return {"name": brain_details[0]["name"]}
+    return {"name": brain_details["name"], "rights": invitation["rights"]}
 
 
 @subscription_router.post(
@@ -244,15 +260,19 @@ class BrainSubscriptionUpdatableProperties(BaseModel):
     email: str
 
 
-@subscription_router.put("/brains/{brain_id}/subscription")
+@subscription_router.put(
+    "/brains/{brain_id}/subscription",
+    dependencies=[
+        Depends(AuthBearer()),
+        Depends(has_brain_authorization([RoleEnum.Owner, RoleEnum.Editor])),
+    ],
+)
 def update_brain_subscription(
     brain_id: UUID,
     subscription: BrainSubscriptionUpdatableProperties,
     current_user: User = Depends(get_current_user),
 ):
-    validate_brain_authorization(brain_id, current_user.id, "Owner")
     user_email = subscription.email
-
     if user_email == current_user.email:
         raise HTTPException(
             status_code=403,
@@ -260,12 +280,54 @@ def update_brain_subscription(
         )
 
     user_id = get_user_id_by_user_email(user_email)
+    brain = Brain(
+        id=brain_id,
+    )
 
+    # check if user is an editor but trying to give high level permissions
+    if subscription.rights == "Owner":
+        try:
+            validate_brain_authorization(
+                brain_id,
+                current_user.id,
+                RoleEnum.Owner,
+            )
+        except HTTPException:
+            raise HTTPException(
+                status_code=403,
+                detail="You don't have the rights to give owner permissions",
+            )
+
+    # check if user is not an editor trying to update an owner right which is not allowed
+    current_invitation = brain.get_brain_for_user(user_id)
+    if current_invitation is not None and current_invitation.get("rights") == "Owner":
+        try:
+            validate_brain_authorization(
+                brain_id,
+                current_user.id,
+                RoleEnum.Owner,
+            )
+        except HTTPException:
+            raise HTTPException(
+                status_code=403,
+                detail="You can't change the permissions of an owner",
+            )
+
+    # removing user access from brain
     if subscription.rights is None:
-        brain = Brain(
-            id=brain_id,
-        )
-        brain.delete_user_from_brain(user_id)
+        try:
+            # only owners can remove user access to a brain
+            validate_brain_authorization(
+                brain_id,
+                current_user.id,
+                RoleEnum.Owner,
+            )
+            brain.delete_user_from_brain(user_id)
+        except HTTPException:
+            raise HTTPException(
+                status_code=403,
+                detail="You don't have the rights to remove user access",
+            )
     else:
         update_brain_user_rights(brain_id, user_id, subscription.rights)
 

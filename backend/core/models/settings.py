@@ -2,9 +2,15 @@ from typing import Annotated
 
 from fastapi import Depends
 from langchain.embeddings.openai import OpenAIEmbeddings
+from models.databases.supabase.supabase import SupabaseDB
 from pydantic import BaseSettings
 from supabase.client import Client, create_client
 from vectorstore.supabase import SupabaseVectorStore
+
+
+class BrainRateLimiting(BaseSettings):
+    max_brain_size: int = 52428800
+    max_brain_per_user: int = 5
 
 
 class BrainSettings(BaseSettings):
@@ -12,6 +18,7 @@ class BrainSettings(BaseSettings):
     anthropic_api_key: str
     supabase_url: str
     supabase_service_key: str
+    pg_database_url: str
     resend_api_key: str = "null"
     resend_email_address: str = "brain@mail.quivr.app"
 
@@ -36,8 +43,12 @@ def common_dependencies() -> dict:
         supabase_client, embeddings, table_name="summaries"
     )
 
+    db = None
+    db = SupabaseDB(supabase_client)
+
     return {
         "supabase": supabase_client,
+        "db": db,
         "embeddings": embeddings,
         "documents_vector_store": documents_vector_store,
         "summaries_vector_store": summaries_vector_store,

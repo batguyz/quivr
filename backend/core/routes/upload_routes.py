@@ -7,8 +7,14 @@ from models.brains import Brain
 from models.files import File
 from models.settings import common_dependencies
 from models.users import User
+from repository.user_identity.get_user_identity import get_user_identity
 from utils.file import convert_bytes, get_file_size
 from utils.processors import filter_file
+
+from routes.authorizations.brain_authorization import (
+    RoleEnum,
+    validate_brain_authorization,
+)
 
 upload_router = APIRouter()
 
@@ -33,15 +39,16 @@ async def upload_file(
     and ensures that the file size does not exceed the maximum capacity. If the file is within the allowed size limit,
     it can optionally apply summarization to the file's content. The response message will indicate the status of the upload.
     """
+    validate_brain_authorization(
+        brain_id, current_user.id, [RoleEnum.Editor, RoleEnum.Owner]
+    )
 
-    # [TODO] check if the user is the owner/editor of the brain
     brain = Brain(id=brain_id)
     commons = common_dependencies()
 
     if request.headers.get("Openai-Api-Key"):
-        brain.max_brain_size = os.getenv(
-            "MAX_BRAIN_SIZE_WITH_KEY", 209715200
-        )  # pyright: ignore reportPrivateUsage=none
+        brain.max_brain_size = int(os.getenv("MAX_BRAIN_SIZE_WITH_KEY", 209715200))
+
     remaining_free_space = brain.remaining_brain_size
 
     file_size = get_file_size(uploadFile)
@@ -53,12 +60,21 @@ async def upload_file(
             "type": "error",
         }
     else:
+        openai_api_key = request.headers.get("Openai-Api-Key", None)
+        if openai_api_key is None:
+            brain_details = brain.get_brain_details()
+            if brain_details:
+                openai_api_key = brain_details["openai_api_key"]
+
+        if openai_api_key is None:
+            openai_api_key = get_user_identity(current_user.id).openai_api_key
+
         message = await filter_file(
             commons,
             file,
             enable_summarization,
             brain_id=brain_id,
-            openai_api_key=request.headers.get("Openai-Api-Key", None),
+            openai_api_key=openai_api_key,
         )
 
     return message

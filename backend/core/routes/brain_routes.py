@@ -8,10 +8,10 @@ from models.brains import (
     get_default_user_brain,
     get_default_user_brain_or_create_new,
 )
-from models.settings import common_dependencies
+from models.settings import BrainRateLimiting
 from models.users import User
 
-from routes.authorizations.brain_authorization import has_brain_authorization
+from routes.authorizations.brain_authorization import RoleEnum, has_brain_authorization
 
 logger = get_logger(__name__)
 
@@ -73,17 +73,15 @@ async def get_brain_endpoint(
     history, which includes the brain messages exchanged in the brain.
     """
     brain = Brain(id=brain_id)
-    brains = brain.get_brain_details()
-    if len(brains) > 0:
-        return {
-            "id": brain_id,
-            "name": brains[0]["name"],
-        }
-    else:
-        return HTTPException(
+
+    brain_details = brain.get_brain_details()
+    if brain_details is None:
+        raise HTTPException(
             status_code=404,
-            detail="Brain not found",
+            detail="Brain details not found",
         )
+
+    return brain_details
 
 
 # create new brain
@@ -102,7 +100,14 @@ async def create_brain_endpoint(
     In the brains table & in the brains_users table and put the creator user as 'Owner'
     """
 
-    brain = Brain(name=brain.name)  # pyright: ignore reportPrivateUsage=none
+    user_brains = brain.get_user_brains(current_user.id)
+    max_brain_per_user = BrainRateLimiting().max_brain_per_user
+
+    if len(user_brains) >= max_brain_per_user:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Maximum number of brains reached ({max_brain_per_user}).",
+        )
 
     brain.create_brain()  # pyright: ignore reportPrivateUsage=none
     default_brain = get_default_user_brain(current_user)
@@ -133,7 +138,7 @@ async def create_brain_endpoint(
         Depends(
             AuthBearer(),
         ),
-        Depends(has_brain_authorization()),
+        Depends(has_brain_authorization([RoleEnum.Editor, RoleEnum.Owner])),
     ],
     tags=["Brain"],
 )
@@ -142,22 +147,35 @@ async def update_brain_endpoint(
     input_brain: Brain,
 ):
     """
-    Update an existing brain with new brain parameters/files.
-    If the file is contained in Add file to brain :
-        if given a fileName/ file sha1 / -> add all the vector Ids to the brains_vectors
-    Modify other brain fields:
-        name, status, model, max_tokens, temperature
-    Return modified brain ? No need -> do an optimistic update
+    Update an existing brain with new brain configuration
     """
-    commons = common_dependencies()
+    input_brain.id = brain_id
+    print("brain", input_brain)
+
+    input_brain.update_brain_fields()
+    return {"message": f"Brain {brain_id} has been updated."}
+
+
+# set as default brain
+@brain_router.post(
+    "/brains/{brain_id}/default",
+    dependencies=[
+        Depends(
+            AuthBearer(),
+        ),
+        Depends(has_brain_authorization()),
+    ],
+    tags=["Brain"],
+)
+async def set_as_default_brain_endpoint(
+    brain_id: UUID,
+    user: User = Depends(get_current_user),
+):
+    """
+    Set a brain as default for the current user.
+    """
     brain = Brain(id=brain_id)
 
-    # Add new file to brain , il file_sha1 already exists in brains_vectors -> out (not now)
-    if brain.file_sha1:  # pyright: ignore reportPrivateUsage=none
-        # add all the vector Ids to the brains_vectors  with the given brain.brain_id
-        brain.update_brain_with_file(
-            file_sha1=input_brain.file_sha1  # pyright: ignore reportPrivateUsage=none
-        )
+    brain.set_as_default_brain_for_user(user)
 
-    brain.update_brain_fields(commons, brain)  # pyright: ignore reportPrivateUsage=none
-    return {"message": f"Brain {brain_id} has been updated."}
+    return {"message": f"Brain {brain_id} has been set as default brain."}

@@ -126,14 +126,15 @@ CREATE TABLE IF NOT EXISTS api_keys(
     is_active BOOLEAN DEFAULT true
 );
 
--- Create brains table
-CREATE TABLE  IF NOT EXISTS brains (
+CREATE TABLE IF NOT EXISTS brains (
   brain_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT,
+  name TEXT NOT NULL,
   status TEXT,
+  description TEXT,
   model TEXT,
-  max_tokens TEXT,
-  temperature FLOAT
+  max_tokens INT,
+  temperature FLOAT,
+  openai_api_key TEXT
 );
 
 -- Create brains X users table
@@ -166,6 +167,12 @@ CREATE TABLE IF NOT EXISTS brain_subscription_invitations (
   FOREIGN KEY (brain_id) REFERENCES brains (brain_id)
 );
 
+--- Create user_identity table
+CREATE TABLE IF NOT EXISTS user_identity (
+  user_id UUID PRIMARY KEY,
+  openai_api_key VARCHAR(255)
+);
+
 CREATE OR REPLACE FUNCTION public.get_user_email_by_user_id(user_id uuid)
 RETURNS TABLE (email text)
 SECURITY definer
@@ -193,7 +200,7 @@ CREATE TABLE IF NOT EXISTS migrations (
 );
 
 INSERT INTO migrations (name) 
-SELECT '20230717173000_add_get_user_id_by_user_email'
+SELECT '20230731172400_add_user_identity_table'
 WHERE NOT EXISTS (
-    SELECT 1 FROM migrations WHERE name = '20230717173000_add_get_user_id_by_user_email'
+    SELECT 1 FROM migrations WHERE name = '20230731172400_add_user_identity_table'
 );

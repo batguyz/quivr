@@ -23,7 +23,7 @@ replace_in_file() {
 # Step 2: Copy the .XXXXX_env files if they don't exist
 if [ ! -f backend/core/.env ]; then
     echo "Copying backend-core .env example file..."
-    cp .backend_env.example backend/.env
+    cp .backend_env.example backend/core/.env
 fi
 
 if [ ! -f frontend/.env ]; then
@@ -45,6 +45,12 @@ if grep -q "SUPABASE_SERVICE_KEY=<change-me>" backend/core/.env; then
     echo "SUPABASE_SERVICE_KEY can be found in your Supabase dashboard under Settings > API. Use the anon public key found in the Project API keys section."
     SUPABASE_SERVICE_KEY=$(gum input --placeholder "Enter SUPABASE_SERVICE_KEY for backend/core")
     replace_in_file backend/core/.env "SUPABASE_SERVICE_KEY=.*" "SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}"
+fi
+
+if grep -q "PG_DATABASE_URL=<change-me>" backend/.env; then
+    echo "PG_DATABASE_URL can be found in your Postgres provider Settings > API."
+    PG_DATABASE_URL=$(gum input --placeholder "Enter PG_DATABASE_URL for backend")
+    replace_in_file backend/.env "PG_DATABASE_URL=.*" "PG_DATABASE_URL=${PG_DATABASE_URL}"
 fi
 
 if grep -q "OPENAI_API_KEY=<change-me>" backend/core/.env; then
