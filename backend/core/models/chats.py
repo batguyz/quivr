@@ -17,7 +17,8 @@ class ChatMessage(BaseModel):
 
 
 class ChatQuestion(BaseModel):
-    model: str = "gpt-3.5-turbo-0613"
+    model: str = "gpt-3.5-turbo"
     question: str
     temperature: float = 0.0
     max_tokens: int = 256
+    brain_id: Optional[UUID]

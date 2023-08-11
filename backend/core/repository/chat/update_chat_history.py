@@ -1,15 +1,14 @@
-from typing import List  # For type hinting
+from typing import List
 
 from fastapi import HTTPException
 from models.chat import ChatHistory
-from models.settings import common_dependencies
+from models.databases.supabase.chats import CreateChatHistory
+from models.settings import get_supabase_db
 
 
-def update_chat_history(chat_id: str, user_message: str, assistant: str) -> ChatHistory:
-    commons = common_dependencies()
-    response: List[ChatHistory] = (
-        commons["db"].update_chat_history(chat_id, user_message, assistant)
-    ).data
+def update_chat_history(chat_history: CreateChatHistory) -> ChatHistory:
+    supabase_db = get_supabase_db()
+    response: List[ChatHistory] = (supabase_db.update_chat_history(chat_history)).data
     if len(response) == 0:
         raise HTTPException(
             status_code=500, detail="An exception occurred while updating chat history."

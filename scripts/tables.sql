@@ -16,15 +16,6 @@ CREATE TABLE IF NOT EXISTS chats(
     chat_name TEXT
 );
 
--- Create chat_history table
-CREATE TABLE IF NOT EXISTS chat_history (
-    message_id UUID DEFAULT uuid_generate_v4(),
-    chat_id UUID REFERENCES chats(chat_id),
-    user_message TEXT,
-    assistant TEXT,
-    message_time TIMESTAMP DEFAULT current_timestamp,
-    PRIMARY KEY (chat_id, message_id)
-);
 
 -- Create vector extension
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -126,6 +117,15 @@ CREATE TABLE IF NOT EXISTS api_keys(
     is_active BOOLEAN DEFAULT true
 );
 
+--- Create prompts table
+CREATE TABLE IF NOT EXISTS prompts (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    title VARCHAR(255),
+    content TEXT,
+    status VARCHAR(255) DEFAULT 'private'
+);
+
+--- Create brains table
 CREATE TABLE IF NOT EXISTS brains (
   brain_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
@@ -134,7 +134,21 @@ CREATE TABLE IF NOT EXISTS brains (
   model TEXT,
   max_tokens INT,
   temperature FLOAT,
-  openai_api_key TEXT
+  openai_api_key TEXT,
+  prompt_id UUID REFERENCES prompts(id)
+);
+
+
+-- Create chat_history table
+CREATE TABLE IF NOT EXISTS chat_history (
+    message_id UUID DEFAULT uuid_generate_v4(),
+    chat_id UUID REFERENCES chats(chat_id),
+    user_message TEXT,
+    assistant TEXT,
+    message_time TIMESTAMP DEFAULT current_timestamp,
+    PRIMARY KEY (chat_id, message_id),
+    prompt_id UUID REFERENCES prompts(id),
+    brain_id UUID REFERENCES brains(brain_id)
 );
 
 -- Create brains X users table
@@ -173,6 +187,7 @@ CREATE TABLE IF NOT EXISTS user_identity (
   openai_api_key VARCHAR(255)
 );
 
+
 CREATE OR REPLACE FUNCTION public.get_user_email_by_user_id(user_id uuid)
 RETURNS TABLE (email text)
 SECURITY definer
@@ -200,7 +215,7 @@ CREATE TABLE IF NOT EXISTS migrations (
 );
 
 INSERT INTO migrations (name) 
-SELECT '20230731172400_add_user_identity_table'
+SELECT '20230809154300_add_prompt_id_brain_id_to_chat_history_table'
 WHERE NOT EXISTS (
-    SELECT 1 FROM migrations WHERE name = '20230731172400_add_user_identity_table'
+    SELECT 1 FROM migrations WHERE name = '20230809154300_add_prompt_id_brain_id_to_chat_history_table'
 );

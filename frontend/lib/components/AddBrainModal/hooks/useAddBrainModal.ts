@@ -1,20 +1,24 @@
 /* eslint-disable max-lines */
 import axios from "axios";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import { useBrainApi } from "@/lib/api/brain/useBrainApi";
+import { usePromptApi } from "@/lib/api/prompt/usePromptApi";
 import { useBrainConfig } from "@/lib/context/BrainConfigProvider";
 import { useBrainContext } from "@/lib/context/BrainProvider/hooks/useBrainContext";
-import { defineMaxTokens } from "@/lib/helpers/defineMexTokens";
+import { defineMaxTokens } from "@/lib/helpers/defineMaxTokens";
 import { useToast } from "@/lib/hooks";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const useAddBrainModal = () => {
+  const { t } = useTranslation(["translation", "brain", "config"]);
   const [isPending, setIsPending] = useState(false);
   const { publish } = useToast();
   const { createBrain, setActiveBrain } = useBrainContext();
   const { setAsDefaultBrain } = useBrainApi();
+  const { createPrompt } = usePromptApi();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { config } = useBrainConfig();
   const defaultValues = {
@@ -22,6 +26,10 @@ export const useAddBrainModal = () => {
     name: "",
     description: "",
     setDefault: false,
+    prompt: {
+      title: "",
+      content: "",
+    },
   };
 
   const { register, getValues, reset, watch, setValue } = useForm({
@@ -37,8 +45,17 @@ export const useAddBrainModal = () => {
     setValue("maxTokens", Math.min(maxTokens, defineMaxTokens(model)));
   }, [maxTokens, model, setValue]);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const getCreatingBrainPromptId = async (): Promise<string | undefined> => {
+    const { prompt } = getValues();
+
+    if (prompt.title.trim() !== "" && prompt.content.trim() !== "") {
+      return (await createPrompt(prompt)).id;
+    }
+
+    return undefined;
+  };
+
+  const handleSubmit = async () => {
     const { name, description, setDefault } = getValues();
 
     if (name.trim() === "" || isPending) {
@@ -47,6 +64,9 @@ export const useAddBrainModal = () => {
 
     try {
       setIsPending(true);
+
+      const prompt_id = await getCreatingBrainPromptId();
+
       const createdBrainId = await createBrain({
         name,
         description,
@@ -54,12 +74,13 @@ export const useAddBrainModal = () => {
         model,
         openai_api_key: openAiKey,
         temperature,
+        prompt_id,
       });
 
       if (createdBrainId === undefined) {
         publish({
           variant: "danger",
-          text: "Error occurred while creating a brain",
+          text: t("errorCreatingBrain",{ns:"brain"})
         });
 
         return;
@@ -78,7 +99,7 @@ export const useAddBrainModal = () => {
       reset(defaultValues);
       publish({
         variant: "success",
-        text: "Brain created successfully",
+        text: t("brainCreated",{ns:"brain"})
       });
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
@@ -92,15 +113,31 @@ export const useAddBrainModal = () => {
             ).data.detail
           )}`,
         });
-      } else {
-        publish({
-          variant: "danger",
-          text: `${JSON.stringify(err)}`,
-        });
+
+        return;
       }
+      publish({
+        variant: "danger",
+        text: `${JSON.stringify(err)}`,
+      });
     } finally {
       setIsPending(false);
     }
+  };
+
+  const pickPublicPrompt = ({
+    title,
+    content,
+  }: {
+    title: string;
+    content: string;
+  }): void => {
+    setValue("prompt.title", title, {
+      shouldDirty: true,
+    });
+    setValue("prompt.content", content, {
+      shouldDirty: true,
+    });
   };
 
   return {
@@ -108,10 +145,11 @@ export const useAddBrainModal = () => {
     setIsShareModalOpen,
     handleSubmit,
     register,
-    openAiKey,
+    openAiKey: openAiKey === "" ? undefined : openAiKey,
     model,
     temperature,
     maxTokens,
     isPending,
+    pickPublicPrompt,
   };
 };

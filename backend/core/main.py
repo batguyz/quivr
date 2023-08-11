@@ -1,5 +1,9 @@
 import os
-
+if __name__ == "__main__":
+    # import needed here when running main.py to debug backend
+    # you will need to run pip install python-dotenv
+    from dotenv import load_dotenv
+    load_dotenv()
 import pypandoc
 import sentry_sdk
 from fastapi import FastAPI, HTTPException, Request, status
@@ -13,6 +17,7 @@ from routes.chat_routes import chat_router
 from routes.crawl_routes import crawl_router
 from routes.explore_routes import explore_router
 from routes.misc_routes import misc_router
+from routes.prompt_routes import prompt_router
 from routes.subscription_routes import subscription_router
 from routes.upload_routes import upload_router
 from routes.user_routes import user_router
@@ -46,6 +51,7 @@ app.include_router(upload_router)
 app.include_router(user_router)
 app.include_router(api_key_router)
 app.include_router(subscription_router)
+app.include_router(prompt_router)
 
 
 @app.exception_handler(HTTPException)
@@ -75,3 +81,9 @@ def handle_request_validation_error(app: FastAPI):
 
 
 handle_request_validation_error(app)
+
+if __name__ == "__main__":
+    # run main.py to debug backend
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5050)
+

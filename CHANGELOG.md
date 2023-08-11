@@ -1,5 +1,86 @@
 # Changelog
 
+## [0.0.56](https://github.com/StanGirard/quivr/compare/v0.0.55...v0.0.56) (2023-08-10)
+
+
+### Bug Fixes
+
+* **chat:** update data keys ([#923](https://github.com/StanGirard/quivr/issues/923)) ([21db719](https://github.com/StanGirard/quivr/commit/21db7197965f1cacd6595ae94d9017fc54d761c3))
+
+## [0.0.55](https://github.com/StanGirard/quivr/compare/v0.0.54...v0.0.55) (2023-08-10)
+
+
+### Features
+
+* **chatMessages:** add brain_id and prompt_id columns  ([#912](https://github.com/StanGirard/quivr/issues/912)) ([6e77732](https://github.com/StanGirard/quivr/commit/6e777327aaee7b9f35b20dcd00814f4acbaf448e))
+* **invitation:** add translations ([#909](https://github.com/StanGirard/quivr/issues/909)) ([1360ce8](https://github.com/StanGirard/quivr/commit/1360ce801d8958defa5dd29a481e2e66ac6ae9ac))
+* Russian language translation ([#903](https://github.com/StanGirard/quivr/issues/903)) ([672eec0](https://github.com/StanGirard/quivr/commit/672eec08bc7113e3f4c32a29ae86b2b879262d30))
+
+## [0.0.54](https://github.com/StanGirard/quivr/compare/v0.0.53...v0.0.54) (2023-08-08)
+
+
+### Features
+
+* add new chat bar ([#896](https://github.com/StanGirard/quivr/issues/896)) ([69a73f5](https://github.com/StanGirard/quivr/commit/69a73f5d5ae58dca9c23c0d8751f8c7326c84f4c))
+* add new chat page ([#890](https://github.com/StanGirard/quivr/issues/890)) ([c43e0c0](https://github.com/StanGirard/quivr/commit/c43e0c01c4ddcf0d97b9bb89784ff004fb7a0a79))
+* deleting brains on brain manager page ([#893](https://github.com/StanGirard/quivr/issues/893)) ([71e142b](https://github.com/StanGirard/quivr/commit/71e142ba3c164e5f14959cd1fd5de38531779034))
+
+
+### Bug Fixes
+
+* **es:** spanish translations ([#895](https://github.com/StanGirard/quivr/issues/895)) ([69d0893](https://github.com/StanGirard/quivr/commit/69d08937de1540cf39a6462b4583b2c4c908d0af))
+* **sentry:** some unhandled errors ([#894](https://github.com/StanGirard/quivr/issues/894)) ([9ba7241](https://github.com/StanGirard/quivr/commit/9ba724168eacf4b074ad062f2a58b637597335ba))
+
+## [0.0.53](https://github.com/StanGirard/quivr/compare/v0.0.52...v0.0.53) (2023-08-07)
+
+
+### Features
+
+* **backend:** add custom prompt ([#885](https://github.com/StanGirard/quivr/issues/885)) ([61cd0a6](https://github.com/StanGirard/quivr/commit/61cd0a6bde989bc9f931f47967c3bbddc3b0446b))
+* **fr:** added language  ([#884](https://github.com/StanGirard/quivr/issues/884)) ([1160e16](https://github.com/StanGirard/quivr/commit/1160e160141f350a39ae4f73ff88ad79e1b1d874))
+* gpt4 is not available for brains if there is no given openAiKey  ([#850](https://github.com/StanGirard/quivr/issues/850)) ([e9ebeef](https://github.com/StanGirard/quivr/commit/e9ebeef72ae2dee40b6bdff58121f9f9e1814577))
+* **qa:** improve code ([#886](https://github.com/StanGirard/quivr/issues/886)) ([7028505](https://github.com/StanGirard/quivr/commit/7028505571a8e1f8569a12b770b3ce99cd2ec4e0))
+
+
+### Bug Fixes
+
+* **i18n:** update tests for french and spanish ([#878](https://github.com/StanGirard/quivr/issues/878)) ([b0514d6](https://github.com/StanGirard/quivr/commit/b0514d6149d474747de642d12454f6b511a1f947))
+
+## [0.0.52](https://github.com/StanGirard/quivr/compare/v0.0.51...v0.0.52) (2023-08-07)
+
+
+### Features
+
+* add custom prompt fields on brain setting pages ([#837](https://github.com/StanGirard/quivr/issues/837)) ([99a3fa9](https://github.com/StanGirard/quivr/commit/99a3fa9b296520a71028194e21bc808a2ec208a0))
+* add public prompts picker ([#841](https://github.com/StanGirard/quivr/issues/841)) ([b3fb8fc](https://github.com/StanGirard/quivr/commit/b3fb8fc3bc2d71a72e73b4f0aa30c84255a77fc0))
+* remove private prompts on related brain delete ([#842](https://github.com/StanGirard/quivr/issues/842)) ([4c15fe2](https://github.com/StanGirard/quivr/commit/4c15fe2bfde7a2fdc59c299ef668f1ba0cd8ffa8))
+
+
+### Bug Fixes
+
+* **pg-database:** by default variable is not implemented ([#848](https://github.com/StanGirard/quivr/issues/848)) ([69e2c28](https://github.com/StanGirard/quivr/commit/69e2c289e5a6e4cfd6b7187a3c4fda5c538d5d35))
+* remove typo ([#853](https://github.com/StanGirard/quivr/issues/853)) ([5496e9d](https://github.com/StanGirard/quivr/commit/5496e9d738a1f80f11b6c8fa8606960abcbcd06d))
+
+
+### Performance Improvements
+
+* **deps:** removed ([#873](https://github.com/StanGirard/quivr/issues/873)) ([10d4d65](https://github.com/StanGirard/quivr/commit/10d4d65c1e203aaae1069395ed5066fbfc9c7715))
+
+## [0.0.51](https://github.com/StanGirard/quivr/compare/v0.0.50...v0.0.51) (2023-08-03)
+
+
+### Features
+
+* **backend:** implement brain-prompt link ([#831](https://github.com/StanGirard/quivr/issues/831)) ([4ca6c66](https://github.com/StanGirard/quivr/commit/4ca6c667da3d5daf0339c65f077c8956c7ef42e8))
+* **prompt:** add prompt table, entity and repository ([#823](https://github.com/StanGirard/quivr/issues/823)) ([e3b6114](https://github.com/StanGirard/quivr/commit/e3b6114248ee04a9dc6b93093256d82324672925))
+
+
+### Bug Fixes
+
+* **chat routes:** HTTPException import correction ([#833](https://github.com/StanGirard/quivr/issues/833)) ([68f03b2](https://github.com/StanGirard/quivr/commit/68f03b2416f5b49e9f8e72c5b1c91754792a1233))
+* **chats:** delete chats from correct table ([#834](https://github.com/StanGirard/quivr/issues/834)) ([659e585](https://github.com/StanGirard/quivr/commit/659e585145ea0aa8bf88ecc48d31e0b65098a729))
+* **env:** added pg database url default value to none ([23f50ec](https://github.com/StanGirard/quivr/commit/23f50ec3a37af453f1b8b69592d1a640189d50e8))
+
 ## [0.0.50](https://github.com/StanGirard/quivr/compare/v0.0.49...v0.0.50) (2023-08-02)
 
 

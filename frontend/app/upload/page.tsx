@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 
 import { BrainRoleType } from "@/lib/components/NavBar/components/NavItems/components/BrainsDropDown/components/BrainActions/types";
 import Button from "@/lib/components/ui/Button";
@@ -17,6 +19,7 @@ const requiredRolesForUpload: BrainRoleType[] = ["Editor", "Owner"];
 const UploadPage = (): JSX.Element => {
   const { currentBrain } = useBrainContext();
   const { session } = useSupabase();
+  const { t } = useTranslation(["translation", "upload"]);
 
   if (session === null) {
     redirectToLogin();
@@ -26,9 +29,11 @@ const UploadPage = (): JSX.Element => {
     return (
       <div className="flex justify-center items-center mt-5">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-md">
-          <strong className="font-bold mr-1">Oh no!</strong>
+          <strong className="font-bold mr-1">
+            {t("ohNo", { ns: "upload" })}
+          </strong>
           <span className="block sm:inline">
-            {"You need to select a brain first. 🧠💡🥲"}
+            {t("selectBrainFirst", { ns: "upload" })}
           </span>
         </div>
       </div>
@@ -41,34 +46,42 @@ const UploadPage = (): JSX.Element => {
     return (
       <div className="flex justify-center items-center mt-5">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-md">
-          <strong className="font-bold mr-1">Oh no!</strong>
+          <strong className="font-bold mr-1">
+            {t("ohNo", { ns: "upload" })}
+          </strong>
           <span className="block sm:inline">
-            {
-              "You don't have the necessary role to upload content to the selected brain. 🧠💡🥲"
-            }
+            {t("missingNecessaryRole", { ns: "upload" })}
           </span>
         </div>
       </div>
     );
   }
 
+  const Upload = () => {
+    return (
+      <main className="pt-10">
+        <PageHeading
+          title={t("title", { ns: "upload" })}
+          subtitle={t("subtitle", { ns: "upload" })}
+        />
+        <FileUploader />
+        <Divider text={t("or")} className="m-5" />
+        <Crawler />
+        <div className="flex flex-col items-center justify-center gap-5 mt-5">
+          <Link href={"/chat"}>
+            <Button variant={"secondary"} className="py-3">
+              {t("chatButton")}
+            </Button>
+          </Link>
+        </div>
+      </main>
+    );
+  };
+
   return (
-    <main className="pt-10">
-      <PageHeading
-        title={`Upload Knowledge to ${currentBrain.name}`}
-        subtitle="Text, document, spreadsheet, presentation, audio, video, and URLs supported"
-      />
-      <FileUploader />
-      <Divider text="or" className="m-5" />
-      <Crawler />
-      <div className="flex flex-col items-center justify-center gap-5 mt-5">
-        <Link href={"/chat"}>
-          <Button variant={"secondary"} className="py-3">
-            Chat
-          </Button>
-        </Link>
-      </div>
-    </main>
+    <Suspense fallback="Loading...">
+      <Upload />
+    </Suspense>
   );
 };
 

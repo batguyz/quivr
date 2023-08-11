@@ -3,10 +3,11 @@ import time
 
 from auth import AuthBearer, get_current_user
 from fastapi import APIRouter, Depends, Request
-from models.brains import Brain, get_default_user_brain
+from models.brains import Brain
 from models.settings import BrainRateLimiting
 from models.user_identity import UserIdentity
 from models.users import User
+from repository.brain.get_default_user_brain import get_user_default_brain
 from repository.user_identity.get_user_identity import get_user_identity
 from repository.user_identity.update_user_identity import (
     UserIdentityUpdatableProperties,
@@ -16,11 +17,6 @@ from repository.user_identity.update_user_identity import (
 user_router = APIRouter()
 
 MAX_BRAIN_SIZE_WITH_OWN_KEY = int(os.getenv("MAX_BRAIN_SIZE_WITH_KEY", 209715200))
-
-
-def get_unique_documents(vectors):
-    # Convert each dictionary to a tuple of items, then to a set to remove duplicates, and then back to a dictionary
-    return [dict(t) for t in set(tuple(d.items()) for d in vectors)]
 
 
 @user_router.get("/user", dependencies=[Depends(AuthBearer())], tags=["User"])
@@ -47,10 +43,10 @@ async def get_user_endpoint(
     date = time.strftime("%Y%m%d")
     max_requests_number = os.getenv("MAX_REQUESTS_NUMBER")
     requests_stats = current_user.get_user_request_stats()
-    default_brain = get_default_user_brain(current_user)
+    default_brain = get_user_default_brain(current_user.id)
 
     if default_brain:
-        defaul_brain_size = Brain(id=default_brain["id"]).brain_size
+        defaul_brain_size = Brain(id=default_brain.brain_id).brain_size
     else:
         defaul_brain_size = 0
 
@@ -61,6 +57,7 @@ async def get_user_endpoint(
         "max_requests_number": max_requests_number,
         "requests_stats": requests_stats,
         "date": date,
+        "id": current_user.id,
     }
 
 

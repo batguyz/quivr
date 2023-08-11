@@ -4,12 +4,14 @@ import axios from "axios";
 import { UUID } from "crypto";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import { useBrainApi } from "@/lib/api/brain/useBrainApi";
+import { usePromptApi } from "@/lib/api/prompt/usePromptApi";
 import { useBrainConfig } from "@/lib/context/BrainConfigProvider";
 import { useBrainContext } from "@/lib/context/BrainProvider/hooks/useBrainContext";
 import { Brain } from "@/lib/context/BrainProvider/types";
-import { defineMaxTokens } from "@/lib/helpers/defineMexTokens";
+import { defineMaxTokens } from "@/lib/helpers/defineMaxTokens";
 import { useToast } from "@/lib/hooks";
 
 type UseSettingsTabProps = {
@@ -18,6 +20,7 @@ type UseSettingsTabProps = {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const useSettingsTab = ({ brainId }: UseSettingsTabProps) => {
+  const { t } = useTranslation(["translation", "brain", "config"]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isSettingAsDefault, setIsSettingHasDefault] = useState(false);
   const { publish } = useToast();
@@ -26,66 +29,105 @@ export const useSettingsTab = ({ brainId }: UseSettingsTabProps) => {
   const { config } = useBrainConfig();
   const { fetchAllBrains, fetchDefaultBrain, defaultBrainId } =
     useBrainContext();
+  const { getPrompt, updatePrompt, createPrompt } = usePromptApi();
 
   const defaultValues = {
     ...config,
     name: "",
     description: "",
     setDefault: false,
+    prompt_id: "",
+    prompt: {
+      title: "",
+      content: "",
+    },
   };
 
   const {
     register,
     getValues,
-
     watch,
     setValue,
+    reset,
     formState: { dirtyFields },
   } = useForm({
     defaultValues,
   });
 
-  useEffect(() => {
-    const fetchBrain = async () => {
-      const brain = await getBrain(brainId);
-      if (brain === undefined) {
-        return;
-      }
-
-      for (const key in brain) {
-        const brainKey = key as keyof Brain;
-        if (!(key in brain)) {
-          return;
-        }
-
-        if (brainKey === "max_tokens" && brain["max_tokens"] !== undefined) {
-          setValue("maxTokens", brain["max_tokens"]);
-          continue;
-        }
-
-        if (
-          brainKey === "openai_api_key" &&
-          brain["openai_api_key"] !== undefined
-        ) {
-          setValue("openAiKey", brain["openai_api_key"]);
-          continue;
-        }
-        // @ts-expect-error bad type inference from typescript
-        // eslint-disable-next-line
-        setValue(key, brain[key]);
-      }
-    };
-    void fetchBrain();
-  }, []);
-
+  const isDefaultBrain = defaultBrainId === brainId;
+  const promptId = watch("prompt_id");
   const openAiKey = watch("openAiKey");
   const model = watch("model");
   const temperature = watch("temperature");
   const maxTokens = watch("maxTokens");
 
+  const fetchBrain = async () => {
+    const brain = await getBrain(brainId);
+    if (brain === undefined) {
+      return;
+    }
+
+    for (const key in brain) {
+      const brainKey = key as keyof Brain;
+      if (!(key in brain)) {
+        return;
+      }
+
+      if (brainKey === "max_tokens" && brain["max_tokens"] !== undefined) {
+        setValue("maxTokens", brain["max_tokens"]);
+        continue;
+      }
+
+      if (
+        brainKey === "openai_api_key" &&
+        brain["openai_api_key"] !== undefined
+      ) {
+        setValue("openAiKey", brain["openai_api_key"]);
+        continue;
+      }
+
+      // @ts-expect-error bad type inference from typescript
+      // eslint-disable-next-line
+      if (Boolean(brain[key])) setValue(key, brain[key]);
+    }
+  };
+  useEffect(() => {
+    void fetchBrain();
+  }, []);
+
   useEffect(() => {
     setValue("maxTokens", Math.min(maxTokens, defineMaxTokens(model)));
   }, [maxTokens, model, setValue]);
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        void handleSubmit();
+      }
+    };
+
+    formRef.current?.addEventListener("keydown", handleKeyPress);
+
+    return () => {
+      formRef.current?.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [formRef.current]);
+
+  const fetchPrompt = async () => {
+    if (promptId === "") {
+      return;
+    }
+
+    const prompt = await getPrompt(promptId);
+    if (prompt === undefined) {
+      return;
+    }
+    setValue("prompt", prompt);
+  };
+  useEffect(() => {
+    void fetchPrompt();
+  }, [promptId]);
 
   const setAsDefaultBrainHandler = async () => {
     try {
@@ -93,7 +135,7 @@ export const useSettingsTab = ({ brainId }: UseSettingsTabProps) => {
       await setAsDefaultBrain(brainId);
       publish({
         variant: "success",
-        text: "Brain set as default successfully",
+        text: t("defaultBrainSet",{ns:"config"}),
       });
       void fetchAllBrains();
       void fetchDefaultBrain();
@@ -117,6 +159,43 @@ export const useSettingsTab = ({ brainId }: UseSettingsTabProps) => {
     }
   };
 
+  const removeBrainPrompt = async () => {
+    try {
+      setIsUpdating(true);
+      await updateBrain(brainId, {
+        prompt_id: null,
+      });
+      setValue("prompt", {
+        title: "",
+        content: "",
+      });
+      reset();
+      void fetchBrain();
+      publish({
+        variant: "success",
+        text: t("promptRemoved",{ns:"config"}),
+      });
+    } catch (err) {
+      publish({
+        variant: "danger",
+        text: t("errorRemovingPrompt",{ns:"config"}),
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const promptHandler = async () => {
+    const { prompt } = getValues();
+
+    if (dirtyFields["prompt"]) {
+      await updatePrompt(promptId, {
+        title: prompt.title,
+        content: prompt.content,
+      });
+    }
+  };
+
   const handleSubmit = async () => {
     const hasChanges = Object.keys(dirtyFields).length > 0;
 
@@ -128,7 +207,7 @@ export const useSettingsTab = ({ brainId }: UseSettingsTabProps) => {
     if (isNameDirty !== undefined && isNameDirty && name.trim() === "") {
       publish({
         variant: "danger",
-        text: "Name is required",
+        text: t("nameRequired",{ns:"config"}),
       });
 
       return;
@@ -140,18 +219,61 @@ export const useSettingsTab = ({ brainId }: UseSettingsTabProps) => {
       const {
         maxTokens: max_tokens,
         openAiKey: openai_api_key,
+        prompt,
         ...otherConfigs
       } = getValues();
 
-      await updateBrain(brainId, {
-        ...otherConfigs,
-        max_tokens,
-        openai_api_key,
-      });
+      if (
+        dirtyFields["prompt"] &&
+        (prompt.content === "" || prompt.title === "")
+      ) {
+        publish({
+          variant: "warning",
+          text: t("promptFieldsRequired",{ns:"config"}),
+        });
+
+        return;
+      }
+
+      if (dirtyFields["prompt"]) {
+        if (promptId === "") {
+          otherConfigs["prompt_id"] = (
+            await createPrompt({
+              title: prompt.title,
+              content: prompt.content,
+            })
+          ).id;
+          await updateBrain(brainId, {
+            ...otherConfigs,
+            max_tokens,
+            openai_api_key,
+          });
+          void fetchBrain();
+        } else {
+          await Promise.all([
+            updateBrain(brainId, {
+              ...otherConfigs,
+              max_tokens,
+              openai_api_key,
+            }),
+            promptHandler(),
+          ]);
+        }
+      } else {
+        await updateBrain(brainId, {
+          ...otherConfigs,
+          max_tokens,
+          openai_api_key,
+          prompt_id:
+            otherConfigs["prompt_id"] !== ""
+              ? otherConfigs["prompt_id"]
+              : undefined,
+        });
+      }
 
       publish({
         variant: "success",
-        text: "Brain updated successfully",
+        text: t("brainUpdated",{ns:"config"}),
       });
       void fetchAllBrains();
     } catch (err) {
@@ -176,27 +298,26 @@ export const useSettingsTab = ({ brainId }: UseSettingsTabProps) => {
       setIsUpdating(false);
     }
   };
-  const isDefaultBrain = defaultBrainId === brainId;
 
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        void handleSubmit();
-      }
-    };
-
-    formRef.current?.addEventListener("keydown", handleKeyPress);
-
-    return () => {
-      formRef.current?.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [formRef.current]);
+  const pickPublicPrompt = ({
+    title,
+    content,
+  }: {
+    title: string;
+    content: string;
+  }): void => {
+    setValue("prompt.title", title, {
+      shouldDirty: true,
+    });
+    setValue("prompt.content", content, {
+      shouldDirty: true,
+    });
+  }; 
 
   return {
     handleSubmit,
     register,
-    openAiKey,
+    openAiKey: openAiKey === "" ? undefined : openAiKey,
     model,
     temperature,
     maxTokens,
@@ -205,5 +326,8 @@ export const useSettingsTab = ({ brainId }: UseSettingsTabProps) => {
     isSettingAsDefault,
     isDefaultBrain,
     formRef,
+    promptId,
+    removeBrainPrompt,
+    pickPublicPrompt,
   };
 };
