@@ -1,5 +1,84 @@
 # Changelog
 
+## 0.0.62 (2023-08-25)
+
+## What's Changed
+* feat: Remove chat id from chat list by @ChloeMouret in https://github.com/StanGirard/quivr/pull/1031
+* fix(analytics): june debug for real by @gozineb in https://github.com/StanGirard/quivr/pull/1033
+
+
+**Full Changelog**: https://github.com/StanGirard/quivr/compare/v0.0.61...v0.0.62
+
+## [0.0.61](https://github.com/StanGirard/quivr/compare/v0.0.60...v0.0.61) (2023-08-23)
+
+
+### Features
+
+* add brain prompt overwritting from chat ([#1012](https://github.com/StanGirard/quivr/issues/1012)) ([b967c2d](https://github.com/StanGirard/quivr/commit/b967c2d2d60b93f9142fe2afd04fb9422adcc2be))
+* **backend:** adds python code parsing ([#1003](https://github.com/StanGirard/quivr/issues/1003)) ([a626b84](https://github.com/StanGirard/quivr/commit/a626b84b96c7b40904960e039f72ff042148a240))
+* **prompts:** add public prompts to SQL db ([#1014](https://github.com/StanGirard/quivr/issues/1014)) ([4b1f4b1](https://github.com/StanGirard/quivr/commit/4b1f4b141287d109794aa6015f83deb3882ac5cb))
+* **translation:** Added Simplified Chinese translation，Fix pt-br not working ([#1011](https://github.com/StanGirard/quivr/issues/1011)) ([e328ab8](https://github.com/StanGirard/quivr/commit/e328ab81b30f2dd3dae7287e0351fdacd1c18133))
+
+
+### Bug Fixes
+
+* **Analytics:** no tags tracking for upload & crawl ([#1024](https://github.com/StanGirard/quivr/issues/1024)) ([2b74ebc](https://github.com/StanGirard/quivr/commit/2b74ebc1f099c4d12705d458fefad94120af9208))
+
+## [0.0.60](https://github.com/StanGirard/quivr/compare/v0.0.59...v0.0.60) (2023-08-22)
+
+
+### Features
+
+* **chat:** add brain selection through mention input ([#969](https://github.com/StanGirard/quivr/issues/969)) ([8e94f22](https://github.com/StanGirard/quivr/commit/8e94f22782dd2255e8125fbb4b3718413ad4701e))
+
+
+### Bug Fixes
+
+* remove conflicts ([#998](https://github.com/StanGirard/quivr/issues/998)) ([f61b70a](https://github.com/StanGirard/quivr/commit/f61b70a34f6d24e6f343d31cc4aa63265bb1c218))
+* update backend tests ([#992](https://github.com/StanGirard/quivr/issues/992)) ([5a3a6fe](https://github.com/StanGirard/quivr/commit/5a3a6fe370756783a204f2a62007f6cb23c7b202))
+
+## [0.0.59](https://github.com/StanGirard/quivr/compare/v0.0.58...v0.0.59) (2023-08-20)
+
+
+### Features
+
+* **aws:** all in microservices ([b3a6231](https://github.com/StanGirard/quivr/commit/b3a6231274e5aea28675381ba6f7ba277228f5ac))
+* **chat-service:** added task definition ([d001ec7](https://github.com/StanGirard/quivr/commit/d001ec70df3ccd5f3885b5f174e58f1b3238c433))
+* **docker:** improved size image ([#978](https://github.com/StanGirard/quivr/issues/978)) ([aa623c4](https://github.com/StanGirard/quivr/commit/aa623c4039ba31928dd0934a682259c7762d2efa))
+* **docker:** pushing image to github registry ([ad3dca3](https://github.com/StanGirard/quivr/commit/ad3dca3e2705b87a9c9c0b35f67773bcc182ae88))
+* **gcr:** removed sha and put latest ([2b85a94](https://github.com/StanGirard/quivr/commit/2b85a94e8835861afd9c178b72e59d018d8b956f))
+* **health:** added endpoint for services ([#989](https://github.com/StanGirard/quivr/issues/989)) ([ae7852e](https://github.com/StanGirard/quivr/commit/ae7852ec3f9d6e20b28c3b6fbc0d433d476395ea))
+* **microservices:** split into 4 quivr to better handle long services ([#972](https://github.com/StanGirard/quivr/issues/972)) ([7281fd9](https://github.com/StanGirard/quivr/commit/7281fd905a24b8e4dad7214d7809b8856685fca8))
+* **preview:** added crawl service to ci ([b7f9876](https://github.com/StanGirard/quivr/commit/b7f9876ce20a2c802ccfd7cff35de50ac2fd2226))
+* **preview:** added preview ([#974](https://github.com/StanGirard/quivr/issues/974)) ([9eb25a4](https://github.com/StanGirard/quivr/commit/9eb25a4d1777b9fdbc1c4b93df0b51e8b28d3ae9))
+* **preview:** added service upload ([#979](https://github.com/StanGirard/quivr/issues/979)) ([ce6b45e](https://github.com/StanGirard/quivr/commit/ce6b45e1ac8e9a3d21b7f56ad228351e34179e11))
+* **refacto:** changed a bit of things to make better dx ([#984](https://github.com/StanGirard/quivr/issues/984)) ([d0370ab](https://github.com/StanGirard/quivr/commit/d0370ab499465ee1404d3c1d32878e8da3853441))
+* **Unplug:** chatting without brain streaming ([#970](https://github.com/StanGirard/quivr/issues/970)) ([600ff1e](https://github.com/StanGirard/quivr/commit/600ff1ede02741c66853cc3e4e7f5001aaba3bc2))
+
+
+### Bug Fixes
+
+* **settings:** select proper brain model ([#943](https://github.com/StanGirard/quivr/issues/943)) ([3a44f54](https://github.com/StanGirard/quivr/commit/3a44f54d6b75581e3cbc8acf0c1c309c3273e63f))
+* update backend tests ([#975](https://github.com/StanGirard/quivr/issues/975)) ([c746eb1](https://github.com/StanGirard/quivr/commit/c746eb18303945a1736c89427026b509f501e715))
+* **windows:** removed unused start script ([#962](https://github.com/StanGirard/quivr/issues/962)) ([ad7ac15](https://github.com/StanGirard/quivr/commit/ad7ac1516d5c45c833c9e9ba6162012096372fa6))
+
+## [0.0.57](https://github.com/StanGirard/quivr/compare/v0.0.56...v0.0.57) (2023-08-16)
+
+
+### Features
+
+* add brain missing message ([#958](https://github.com/StanGirard/quivr/issues/958)) ([f99f81d](https://github.com/StanGirard/quivr/commit/f99f81d10f9c768af00e38249763a252f8db16e3))
+* change messages position ([#946](https://github.com/StanGirard/quivr/issues/946)) ([9235a84](https://github.com/StanGirard/quivr/commit/9235a848d12b96af346cc2cbb1ac50dc2f67b20c))
+* update chat ui ([#907](https://github.com/StanGirard/quivr/issues/907)) ([80be40a](https://github.com/StanGirard/quivr/commit/80be40ad34d07b646d48d2aa0405a92b3de308d7))
+
+
+### Bug Fixes
+
+* **chat routes:** use brain model, temp, and token ([#902](https://github.com/StanGirard/quivr/issues/902)) ([59ddfb4](https://github.com/StanGirard/quivr/commit/59ddfb48823b56239fe7fc95133274a3bedf49da))
+* **chatMessages:** Fix error on answering question ([#953](https://github.com/StanGirard/quivr/issues/953)) ([1fef9b0](https://github.com/StanGirard/quivr/commit/1fef9b078379c8991f6029c34ac10d4cbdc5a44d))
+* **crawler:** using newspaper and fixed recursive by merging content ([#955](https://github.com/StanGirard/quivr/issues/955)) ([d7c5c79](https://github.com/StanGirard/quivr/commit/d7c5c79043827b2b0949f6fd6c508c4617dcf498))
+* **translations:** pr portuguese translations ([#933](https://github.com/StanGirard/quivr/issues/933)) ([d80178a](https://github.com/StanGirard/quivr/commit/d80178a84802c35b2c13d3eef4d0438fd067da92))
+
 ## [0.0.56](https://github.com/StanGirard/quivr/compare/v0.0.55...v0.0.56) (2023-08-10)
 
 

@@ -30,13 +30,10 @@ export const ChatMessage = React.forwardRef(
     const containerWrapperClasses = cn(
       "flex flex-col",
 
-      isUserSpeaker ? "items-start " : "items-end"
+      isUserSpeaker ? "items-end" : "items-start"
     );
 
-    const markdownClasses = cn(
-      "prose",
-      isUserSpeaker ? "dark:prose-invert" : "dark:prose"
-    );
+    const markdownClasses = cn("prose", "dark:prose-invert");
 
     return (
       <div className={containerWrapperClasses}>

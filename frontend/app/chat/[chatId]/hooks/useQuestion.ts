@@ -1,10 +1,9 @@
-/* eslint-disable max-lines */
-
+import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import { useBrainContext } from "@/lib/context/BrainProvider/hooks/useBrainContext";
 import { useChatContext } from "@/lib/context/ChatProvider/hooks/useChatContext";
-import { useFetch } from "@/lib/hooks";
+import { useFetch, useToast } from "@/lib/hooks";
 
 import { ChatHistory, ChatQuestion } from "../types";
 
@@ -21,6 +20,7 @@ export const useQuestion = (): UseChatService => {
   const { currentBrain } = useBrainContext();
 
   const { t } = useTranslation(["chat"]);
+  const { publish } = useToast();
 
   const handleStream = async (
     reader: ReadableStreamDefaultReader<Uint8Array>
@@ -59,9 +59,6 @@ export const useQuestion = (): UseChatService => {
     chatId: string,
     chatQuestion: ChatQuestion
   ): Promise<void> => {
-    if (currentBrain?.id === undefined) {
-      throw new Error(t("noCurrentBrain", { ns: "chat" }));
-    }
     const headers = {
       "Content-Type": "application/json",
       Accept: "text/event-stream",
@@ -70,7 +67,7 @@ export const useQuestion = (): UseChatService => {
     console.log("Calling API...");
     try {
       const response = await fetchInstance.post(
-        `/chat/${chatId}/question/stream?brain_id=${currentBrain.id}`,
+        `/chat/${chatId}/question/stream?brain_id=${currentBrain?.id ?? ""}`,
         body,
         headers
       );
@@ -82,6 +79,13 @@ export const useQuestion = (): UseChatService => {
       console.log(t("receivedResponse"), response);
       await handleStream(response.body.getReader());
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        publish({
+          variant: "danger",
+          text: t("tooManyRequests", { ns: "chat" }),
+        });
+      }
+
       console.error(t("errorCallingAPI", { ns: "chat" }), error);
     }
   };

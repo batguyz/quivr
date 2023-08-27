@@ -32,6 +32,15 @@ export const useChat = () => {
   const { t } = useTranslation(["chat"]);
 
   const addQuestion = async (question: string, callback?: () => void) => {
+    if (question === "") {
+      publish({
+        variant: "danger",
+        text: t("ask"),
+      });
+
+      return;
+    }
+
     try {
       setGeneratingAnswer(true);
 
@@ -43,6 +52,7 @@ export const useChat = () => {
         const chat = await createChat(chatName);
         currentChatId = chat.chat_id;
         setChatId(currentChatId);
+        //TODO: update chat list here
       }
 
       void track("QUESTION_ASKED");

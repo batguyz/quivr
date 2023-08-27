@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useEventTracking } from "@/services/analytics/useEventTracking";
+
 export type Language = {
   id: string;
   name: string;
@@ -14,6 +16,8 @@ export const useLanguageHook = (): {
   const { i18n } = useTranslation();
   const [allLanguages, setAllLanguages] = useState<Language[]>([]);
   const [currentLanguage, setCurrentLanguage] = useState<Language | null>(null);
+  const { track } = useEventTracking();
+
   useEffect(() => {
     const languages = [
       {
@@ -29,12 +33,16 @@ export const useLanguageHook = (): {
         name: "Français",
       },
       {
-        id: "pt",
+        id: "ptbr",
         name: "Português",
       },
       {
         id: "ru",
         name: "Русский",
+      },
+      {
+        id: "zh_cn",
+        name: "简体中文",
       },
     ];
 
@@ -59,6 +67,7 @@ export const useLanguageHook = (): {
   }, [i18n]);
 
   const change = (newLanguage: Language) => {
+    void track("CHANGE_LANGUAGE");
     setCurrentLanguage(newLanguage);
     localStorage.setItem("selectedLanguage", newLanguage.id);
     void i18n.changeLanguage(newLanguage.id);

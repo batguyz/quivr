@@ -15,6 +15,7 @@ import {
   paidModels,
 } from "@/lib/context/BrainConfigProvider/types";
 import { defineMaxTokens } from "@/lib/helpers/defineMaxTokens";
+import { SaveButton } from "@/shared/SaveButton";
 
 import { PublicPrompts } from "./components/PublicPrompts/PublicPrompts";
 import { useSettingsTab } from "./hooks/useSettingsTab";
@@ -46,7 +47,7 @@ export const SettingsTab = ({ brainId }: SettingsTabProps): JSX.Element => {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        void handleSubmit();
+        void handleSubmit(true);
       }}
       className="my-10 mb-0 flex flex-col items-center gap-2"
       ref={formRef}
@@ -54,7 +55,7 @@ export const SettingsTab = ({ brainId }: SettingsTabProps): JSX.Element => {
       <div className="flex flex-row flex-1 justify-between w-full">
         <div>
           <Field
-            label={ t("brainName", { ns: "brain" })}
+            label={t("brainName", { ns: "brain" })}
             placeholder={t("brainNamePlaceholder", { ns: "brain" })}
             autoComplete="off"
             className="flex-1"
@@ -101,6 +102,9 @@ export const SettingsTab = ({ brainId }: SettingsTabProps): JSX.Element => {
           id="model"
           {...register("model")}
           className="px-5 py-2 dark:bg-gray-700 bg-gray-200 rounded-md"
+          onChange={() => {
+            void handleSubmit(false); // Trigger form submission
+          }}
         >
           {(openAiKey !== undefined ? paidModels : freeModels).map(
             (availableModel) => (
@@ -137,6 +141,9 @@ export const SettingsTab = ({ brainId }: SettingsTabProps): JSX.Element => {
           {...register("maxTokens")}
         />
       </fieldset>
+      <div className="flex w-full justify-end py-4">
+        <SaveButton handleSubmit={handleSubmit} />
+      </div>
       <Divider text={t("customPromptSection", { ns: "config" })} />
       <PublicPrompts onSelect={pickPublicPrompt} />
       <Field
@@ -153,6 +160,9 @@ export const SettingsTab = ({ brainId }: SettingsTabProps): JSX.Element => {
         className="flex-1"
         {...register("prompt.content")}
       />
+      <div className="flex w-full justify-end py-4">
+        <SaveButton handleSubmit={handleSubmit} />
+      </div>
       {promptId !== "" && (
         <Button disabled={isUpdating} onClick={() => void removeBrainPrompt()}>
           {t("removePrompt", { ns: "config" })}
